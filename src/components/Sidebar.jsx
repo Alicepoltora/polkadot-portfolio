@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { truncateAddress } from '../lib/format';
+import PolkaHubLogo from './PolkaHubLogo';
 
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: <GridIcon /> },
@@ -25,11 +26,8 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
     }}>
       {/* Logo */}
       <div style={{ padding: '28px 20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <PrismIcon />
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em' }}>
-            Polkadot<span style={{ color: 'var(--primary-light)' }}>Prism</span>
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <PolkaHubLogo width={130} showTagline={false} />
         </div>
 
         {/* User pill */}
@@ -42,7 +40,7 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
               fontSize: 12, flexShrink: 0,
             }}>🔑</div>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--on-surface)' }}>Prism Curator</div>
+              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--on-surface)' }}>PolkaHub User</div>
               <div style={{ fontSize: 10, color: 'var(--on-surface-dim)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Network Explorer
               </div>
@@ -124,13 +122,24 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
   );
 }
 
-function PrismIcon() {
+function HubIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
       <rect width="28" height="28" rx="8" fill="rgba(226,0,120,0.15)" />
-      <polygon points="14,5 22,20 6,20" fill="none" stroke="#ff89b0" strokeWidth="1.5" />
-      <polygon points="14,10 19,20 9,20" fill="rgba(226,0,120,0.3)" />
-      <line x1="14" y1="5" x2="14" y2="20" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      {/* Hub: центральный узел + 6 спиц — иконка Polkadot */}
+      <circle cx="14" cy="14" r="3" fill="#ff89b0" />
+      <circle cx="14" cy="6"  r="2" fill="#ff89b0" opacity="0.9" />
+      <circle cx="14" cy="22" r="2" fill="#ff89b0" opacity="0.9" />
+      <circle cx="7"  cy="10" r="2" fill="#ff89b0" opacity="0.7" />
+      <circle cx="21" cy="10" r="2" fill="#ff89b0" opacity="0.7" />
+      <circle cx="7"  cy="18" r="2" fill="#ff89b0" opacity="0.7" />
+      <circle cx="21" cy="18" r="2" fill="#ff89b0" opacity="0.7" />
+      <line x1="14" y1="11" x2="14" y2="8"  stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      <line x1="14" y1="17" x2="14" y2="20" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      <line x1="11.4" y1="12.5" x2="9"  y2="11" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      <line x1="16.6" y1="12.5" x2="19" y2="11" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      <line x1="11.4" y1="15.5" x2="9"  y2="17" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
+      <line x1="16.6" y1="15.5" x2="19" y2="17" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
     </svg>
   );
 }

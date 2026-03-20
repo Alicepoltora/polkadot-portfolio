@@ -6,6 +6,7 @@ import TokenRow from './components/TokenRow';
 import StakingPanel from './components/StakingPanel';
 import NetworkBreakdown from './components/NetworkBreakdown';
 import LoadingState from './components/LoadingState';
+import PolkaHubLogo from './components/PolkaHubLogo';
 
 import { usePolkadotAssets } from './hooks/usePolkadotAssets';
 import { useStaking } from './hooks/useStaking';
@@ -147,17 +148,18 @@ export default function App() {
           {showLanding ? (
             /* ── LANDING ── */
             <div style={{ maxWidth:560, margin:'10vh auto 0', textAlign:'center' }}>
-              <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(226,0,120,0.1)', border:'1px solid rgba(226,0,120,0.2)', borderRadius:20, padding:'5px 14px', marginBottom:28, fontSize:12, color:'var(--primary-light)', fontWeight:600, letterSpacing:'0.06em' }}>
-                ✦ PORTFOLIO OVERVIEW
+              {/* Logo */}
+              <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
+                <PolkaHubLogo width={200} showTagline={true} />
               </div>
               <h1 style={{
-                fontFamily:'var(--font-display)', fontSize:'clamp(36px,5vw,60px)',
-                fontWeight:800, letterSpacing:'-0.03em', lineHeight:1.1,
+                fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,48px)',
+                fontWeight:800, letterSpacing:'-0.03em', lineHeight:1.15,
                 background:'linear-gradient(135deg,var(--on-surface) 40%,var(--primary-light))',
                 WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
                 marginBottom:16,
               }}>
-                Your Polkadot<br/>Portfolio, Unified
+                Your Portfolio,<br/>Unified
               </h1>
               <p style={{ color:'var(--on-surface-dim)', fontSize:16, lineHeight:1.6, marginBottom:36 }}>
                 Track DOT, staking positions, and multichain assets across the entire Polkadot ecosystem in one view.
