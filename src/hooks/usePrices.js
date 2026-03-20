@@ -11,6 +11,9 @@ const FALLBACK_PRICES = {
   moonbeam: 0.12,
   astar: 0.058,
   acala: 0.035,
+  hydradx: 0.008,
+  pha: 0.11,
+  'bifrost-native-coin': 0.22,
   tether: 1.0,
   'usd-coin': 1.0,
 };

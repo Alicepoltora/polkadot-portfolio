@@ -1,14 +1,30 @@
 import { CHAINS } from '../lib/chains';
 
-const PARACHAIN_IDS = ['moonbeam','astar','acala','kusama'];
+// Polkadot relay and Asset Hub = "POLKADOT" badge; everything else = "PARACHAIN"
+const RELAY_IDS = new Set(['polkadot', 'assetHub']);
 
-export default function NetworkBadge({ chainId, showName = true, size = 'sm' }) {
+// Per-chain custom labels for better UX
+const CHAIN_LABELS = {
+  polkadot:  'POLKADOT',
+  assetHub:  'ASSET HUB',
+  kusama:    'KUSAMA',
+  moonbeam:  'MOONBEAM',
+  astar:     'ASTAR',
+  acala:     'ACALA',
+  hydration: 'HYDRATION',
+  phala:     'PHALA',
+  bifrost:   'BIFROST',
+};
+
+export default function NetworkBadge({ chainId, showName = true }) {
   const chain = CHAINS[chainId];
   if (!chain) return null;
 
-  const isParachain = PARACHAIN_IDS.includes(chainId);
-  const badgeClass = isParachain ? 'badge-parachain' : 'badge-polkadot';
-  const label = isParachain ? 'PARACHAIN' : 'POLKADOT';
+  const isRelay     = RELAY_IDS.has(chainId);
+  const badgeClass  = isRelay ? 'badge-polkadot' : 'badge-parachain';
+  const label       = showName
+    ? (CHAIN_LABELS[chainId] ?? chainId.toUpperCase())
+    : (isRelay ? 'POLKADOT' : 'PARACHAIN');
 
   return (
     <span className={badgeClass} style={{
@@ -21,7 +37,7 @@ export default function NetworkBadge({ chainId, showName = true, size = 'sm' }) 
       fontFamily: 'var(--font-body)',
       whiteSpace: 'nowrap',
     }}>
-      {showName ? (chainId === 'assetHub' ? 'ASSET HUB' : label) : label}
+      {label}
     </span>
   );
 }

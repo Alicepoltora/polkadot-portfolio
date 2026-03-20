@@ -11,13 +11,18 @@ import PolkaHubLogo from './components/PolkaHubLogo';
 import { usePolkadotAssets } from './hooks/usePolkadotAssets';
 import { useStaking } from './hooks/useStaking';
 import { useSubscan } from './hooks/useSubscan';
+import { useEVM } from './hooks/useEVM';
 import { usePrices } from './hooks/usePrices';
 import { CHAINS, DEMO_ADDRESS } from './lib/chains';
 import { formatUSD, truncateAddress } from './lib/format';
 
 const TABS = ['All', 'Polkadot Hub', 'Parachains', 'Staking'];
 
+// EVM chain IDs — handled by useEVM, skip duplicates from Subscan
+const EVM_CHAIN_IDS = new Set(['moonbeam', 'astar']);
+
 function validateAddress(addr) {
+  if (addr.startsWith('0x') && addr.length === 42) return true; // EVM address
   try { decodeAddress(addr); return true; } catch { return false; }
 }
 
@@ -32,36 +37,55 @@ export default function App() {
   const { dotBalance, assetHubTokens, loading: assetsLoading } = usePolkadotAssets(address);
   const { staking, apr, loading: stakingLoading }               = useStaking(address);
   const { multiChainData, loading: subscanLoading }             = useSubscan(address);
+  const { evmTokens, loading: evmLoading }                      = useEVM(address);
   const { getPrice, getChange, usingFallback, error: priceErr } = usePrices();
 
   const handleSearch = (addr) => {
     addr = addr.trim();
-    if (!validateAddress(addr)) { setAddrError('Invalid address — enter a valid SS58 or hex address.'); return; }
+    if (!validateAddress(addr)) { setAddrError('Invalid address — enter a valid SS58 or 0x EVM address.'); return; }
     setAddrError(''); setAddress(addr); setNavTab('dashboard');
   };
 
   const allTokens = useMemo(() => {
     const list = [];
+
+    // 1. DOT from relay chain
     if (dotBalance > 0) {
       const p = getPrice('polkadot');
       list.push({ symbol:'DOT', name:'Polkadot', chainId:'polkadot', balance:dotBalance, price:p, change24h:getChange('polkadot'), value:dotBalance*p, coingeckoId:'polkadot' });
     }
+
+    // 2. Asset Hub tokens (USDT, USDC, PINK, etc.)
     assetHubTokens.forEach(t => {
       const p = getPrice(t.coingeckoId);
-      list.push({ symbol:t.symbol, name:t.name, chainId:'assetHub', balance:t.balance, price:p, change24h:getChange(t.coingeckoId), value:t.balance*p, coingeckoId:t.coingeckoId });
+      list.push({ symbol:t.symbol, name:t.name, chainId:'assetHub', balance:t.balance, price:p, change24h:getChange(t.coingeckoId), value:t.balance*(p||0), coingeckoId:t.coingeckoId });
     });
+
+    // 3. Multichain substrate (Kusama, Acala, Hydration, Phala, Bifrost...)
+    //    Skip EVM chains here — they are covered by useEVM below
     multiChainData.forEach(item => {
-      if (item.chainId === 'polkadot' || item.balance <= 0) return;
+      if (item.chainId === 'polkadot') return; // already added via dotBalance
+      if (EVM_CHAIN_IDS.has(item.chainId)) return; // handled by useEVM
+      if (item.balance <= 0) return;
       const chain = CHAINS[item.chainId]; if (!chain) return;
       const p = getPrice(chain.coingeckoId);
-      list.push({ symbol:chain.symbol, name:chain.name, chainId:item.chainId, balance:item.balance, price:p, change24h:getChange(chain.coingeckoId), value:item.balance*p, coingeckoId:chain.coingeckoId });
+      list.push({ symbol:chain.symbol, name:chain.name, chainId:item.chainId, balance:item.balance, price:p, change24h:getChange(chain.coingeckoId), value:item.balance*(p||0), coingeckoId:chain.coingeckoId });
     });
+
+    // 4. EVM native + ERC-20 (Moonbeam GLMR, Astar ASTR, ERC-20 stables)
+    evmTokens.forEach(t => {
+      const p = getPrice(t.coingeckoId);
+      list.push({ symbol:t.symbol, name:t.name, chainId:t.chainId, balance:t.balance, price:p, change24h:getChange(t.coingeckoId), value:t.balance*(p||0), coingeckoId:t.coingeckoId });
+    });
+
     return list.sort((a,b) => (b.value||0)-(a.value||0));
-  }, [dotBalance, assetHubTokens, multiChainData, getPrice, getChange]);
+  }, [dotBalance, assetHubTokens, multiChainData, evmTokens, getPrice, getChange]);
 
   const stakingUSD = staking ? (staking.bonded + staking.unbonding) * getPrice('polkadot') : 0;
   const totalUSD   = allTokens.reduce((s,t) => s+(t.value||0), 0) + stakingUSD;
-  const isLoading  = !!address && (assetsLoading || subscanLoading);
+
+  // Show skeleton while primary data is loading; keep showing results as they stream in
+  const isInitialLoad = !!address && (assetsLoading || subscanLoading) && allTokens.length === 0;
 
   const tokensByChain = useMemo(() => {
     const m = {};
@@ -72,7 +96,7 @@ export default function App() {
   const filteredTokens = useMemo(() => {
     if (activeTab === 'All')           return allTokens;
     if (activeTab === 'Polkadot Hub')  return allTokens.filter(t => ['polkadot','assetHub'].includes(t.chainId));
-    if (activeTab === 'Parachains')    return allTokens.filter(t => ['moonbeam','astar','acala','kusama'].includes(t.chainId));
+    if (activeTab === 'Parachains')    return allTokens.filter(t => !['polkadot','assetHub'].includes(t.chainId));
     return allTokens;
   }, [allTokens, activeTab]);
 
@@ -285,8 +309,8 @@ export default function App() {
               </div>
             </div>
 
-          ) : isLoading ? (
-            <LoadingState message="Connecting to Polkadot nodes…" />
+          ) : isInitialLoad ? (
+            <LoadingState message="Fetching on-chain data…" />
 
           ) : (
             /* ── PORTFOLIO VIEW ── */
@@ -340,6 +364,15 @@ export default function App() {
                     </div>
                   );
                 })()}
+
+                {/* Loading badges — show while data still streams in */}
+                {(assetsLoading || subscanLoading || evmLoading) && (
+                  <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
+                    {assetsLoading  && <LoadingBadge label="Relay chain" />}
+                    {subscanLoading && <LoadingBadge label="Parachains" />}
+                    {evmLoading     && <LoadingBadge label="EVM chains" />}
+                  </div>
+                )}
 
                 {usingFallback && (
                   <div style={{ fontSize:11, color:'var(--warning)', marginTop:6 }}>
@@ -402,9 +435,23 @@ export default function App() {
                           </tbody>
                         </table>
                       </div>
+                    ) : (assetsLoading || subscanLoading) ? (
+                      /* Still loading — show skeleton rows */
+                      <div style={{ padding:'12px 0' }}>
+                        {[1,2,3].map(i => (
+                          <div key={i} style={{ display:'flex', gap:12, padding:'14px 20px', alignItems:'center' }}>
+                            <div className="skeleton" style={{ width:38, height:38, borderRadius:'50%', flexShrink:0 }} />
+                            <div style={{ flex:1 }}>
+                              <div className="skeleton" style={{ height:12, width:'40%', marginBottom:6 }} />
+                              <div className="skeleton" style={{ height:10, width:'25%' }} />
+                            </div>
+                            <div className="skeleton" style={{ height:12, width:60 }} />
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <div style={{ textAlign:'center', padding:'48px 24px', color:'var(--on-surface-dim)', fontSize:13 }}>
-                        No assets found for this filter
+                        No assets found for this address on the selected filter
                       </div>
                     )}
                   </div>
@@ -421,5 +468,19 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingBadge({ label }) {
+  return (
+    <span style={{
+      display:'inline-flex', alignItems:'center', gap:5,
+      background:'rgba(123,233,255,0.06)', border:'1px solid rgba(123,233,255,0.12)',
+      borderRadius:20, padding:'3px 10px',
+      fontSize:10, fontWeight:600, color:'var(--tertiary)', letterSpacing:'0.05em',
+    }}>
+      <span className="dot-spinner" style={{ width:5, height:5 }} />
+      {label}
+    </span>
   );
 }

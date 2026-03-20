@@ -14,8 +14,6 @@ export const CHAINS = {
     logo: '🔴',
     coingeckoId: 'polkadot',
     subscanSlug: 'polkadot',
-    assetHubRpc: 'wss://polkadot-asset-hub-rpc.polkadot.io',
-    evmRpc: 'https://rpc.ibp.network/polkadot',
   },
   assetHub: {
     id: 'assetHub',
@@ -31,9 +29,9 @@ export const CHAINS = {
     coingeckoId: 'polkadot',
     subscanSlug: 'assethub-polkadot',
     assets: [
-      { id: 1984, symbol: 'USDT', name: 'Tether USD', decimals: 6, coingeckoId: 'tether' },
-      { id: 1337, symbol: 'USDC', name: 'USD Coin', decimals: 6, coingeckoId: 'usd-coin' },
-      { id: 17, symbol: 'PINK', name: 'PINK', decimals: 10, coingeckoId: null },
+      { id: 1984, symbol: 'USDT', name: 'Tether USD',  decimals: 6,  coingeckoId: 'tether'   },
+      { id: 1337, symbol: 'USDC', name: 'USD Coin',    decimals: 6,  coingeckoId: 'usd-coin' },
+      { id: 17,   symbol: 'PINK', name: 'PINK Token',  decimals: 10, coingeckoId: null        },
     ],
   },
   kusama: {
@@ -66,8 +64,8 @@ export const CHAINS = {
     coingeckoId: 'moonbeam',
     subscanSlug: 'moonbeam',
     erc20Tokens: [
-      { address: '0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0e', symbol: 'USDC', decimals: 6, coingeckoId: 'usd-coin' },
-      { address: '0xeFAeeE334F0Fd1712f9a8cc375f427D9Cdd40d73', symbol: 'USDT', decimals: 6, coingeckoId: 'tether' },
+      { address: '0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0e', symbol: 'USDC', decimals: 6,  coingeckoId: 'usd-coin' },
+      { address: '0xeFAeeE334F0Fd1712f9a8cc375f427D9Cdd40d73', symbol: 'USDT', decimals: 6,  coingeckoId: 'tether'   },
     ],
   },
   astar: {
@@ -87,7 +85,7 @@ export const CHAINS = {
     subscanSlug: 'astar',
     erc20Tokens: [
       { address: '0x6De33698e9e9b787e09d3Bd7771ef63557E148bb', symbol: 'USDC', decimals: 6, coingeckoId: 'usd-coin' },
-      { address: '0x3795C36e7D12A8c252A20C5a7B455f7c57b60283', symbol: 'USDT', decimals: 6, coingeckoId: 'tether' },
+      { address: '0x3795C36e7D12A8c252A20C5a7B455f7c57b60283', symbol: 'USDT', decimals: 6, coingeckoId: 'tether'   },
     ],
   },
   acala: {
@@ -104,6 +102,48 @@ export const CHAINS = {
     coingeckoId: 'acala',
     subscanSlug: 'acala',
   },
+  hydration: {
+    id: 'hydration',
+    name: 'Hydration',
+    shortName: 'HDX',
+    type: 'substrate',
+    rpc: 'wss://hydradx-rpc.dwellir.com',
+    ss58Prefix: 63,
+    decimals: 12,
+    symbol: 'HDX',
+    color: '#4B53FF',
+    logo: '💧',
+    coingeckoId: 'hydradx',
+    subscanSlug: 'hydration',
+  },
+  phala: {
+    id: 'phala',
+    name: 'Phala',
+    shortName: 'PHA',
+    type: 'substrate',
+    rpc: 'wss://api.phala.network/ws',
+    ss58Prefix: 30,
+    decimals: 12,
+    symbol: 'PHA',
+    color: '#03AC58',
+    logo: '🛡',
+    coingeckoId: 'pha',
+    subscanSlug: 'phala',
+  },
+  bifrost: {
+    id: 'bifrost',
+    name: 'Bifrost',
+    shortName: 'BNC',
+    type: 'substrate',
+    rpc: 'wss://bifrost-rpc.dwellir.com',
+    ss58Prefix: 6,
+    decimals: 12,
+    symbol: 'BNC',
+    color: '#5B5B5B',
+    logo: '🌿',
+    coingeckoId: 'bifrost-native-coin',
+    subscanSlug: 'bifrost',
+  },
 };
 
 export const CHAIN_LIST = Object.values(CHAINS);
@@ -114,6 +154,9 @@ export const COINGECKO_IDS = [
   'moonbeam',
   'astar',
   'acala',
+  'hydradx',
+  'pha',
+  'bifrost-native-coin',
   'tether',
   'usd-coin',
 ];
