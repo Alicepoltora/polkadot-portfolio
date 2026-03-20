@@ -102,29 +102,30 @@ export default function App() {
 
         {/* Top Bar */}
         <header style={{
-          height: 60,
+          height: 58,
           padding: '0 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          background: 'rgba(16,19,29,0.8)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(13,16,32,0.85)',
+          backdropFilter: 'blur(12px)',
           position: 'sticky', top: 0, zIndex: 50,
           flexShrink: 0,
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
         }}>
           {/* Tab links */}
-          <div style={{ display:'flex', gap:4 }}>
+          <div style={{ display:'flex', gap:2 }}>
             {['Dashboard','Assets','Staking'].map(t => {
               const id = t.toLowerCase();
               const isActive = navTab === id;
               return (
                 <button key={t} onClick={() => { setNavTab(id); if(id==='staking') setActiveTab('Staking'); else setActiveTab('All'); }} style={{
-                  background:'transparent', border:'none',
-                  borderBottom: isActive ? '2px solid var(--primary-light)' : '2px solid transparent',
-                  color: isActive ? 'var(--on-surface)' : 'var(--on-surface-dim)',
+                  background: isActive ? 'rgba(226,0,120,0.1)' : 'transparent',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: isActive ? 'var(--primary-light)' : 'var(--on-surface-dim)',
                   fontWeight: isActive ? 600 : 400,
-                  fontSize: 14, padding:'0 14px', height:59, cursor:'pointer',
+                  fontSize: 13, padding:'6px 16px', cursor:'pointer',
                   transition:'all 0.15s', fontFamily:'var(--font-body)',
                 }}>
                   {t}
@@ -133,21 +134,39 @@ export default function App() {
             })}
           </div>
 
-          {/* Right: address + avatar */}
+          {/* Right: address chip + avatar */}
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             {address && (
               <div style={{
-                background:'var(--surface-high)', borderRadius:8, padding:'5px 12px',
-                fontSize:12, color:'var(--on-surface-dim)', fontFamily:'var(--font-mono)',
+                background:'rgba(27,31,43,0.9)',
+                border:'1px solid rgba(255,255,255,0.08)',
+                borderRadius:8, padding:'5px 12px',
+                fontSize:11, color:'var(--on-surface-dim)', fontFamily:'var(--font-mono)',
+                display:'flex', alignItems:'center', gap:6,
               }}>
-                {truncateAddress(address,6,6)}
+                <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--success)', flexShrink:0, boxShadow:'0 0 6px var(--success)' }}/>
+                {truncateAddress(address,7,6)}
               </div>
             )}
+            {/* Notification bell */}
             <div style={{
               width:32, height:32, borderRadius:'50%',
-              background:'linear-gradient(135deg,var(--primary),var(--primary-dim))',
-              display:'flex', alignItems:'center', justifyContent:'center', fontSize:14,
-            }}>🔑</div>
+              background:'rgba(27,31,43,0.8)',
+              border:'1px solid rgba(255,255,255,0.06)',
+              display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, cursor:'pointer',
+            }}>🔔</div>
+            {/* Avatar */}
+            <div style={{
+              width:32, height:32, borderRadius:'50%',
+              background:'linear-gradient(135deg,var(--primary),#8B00C9)',
+              display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, cursor:'pointer',
+              boxShadow:'0 0 0 2px rgba(226,0,120,0.25)',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" fill="white" fillOpacity="0.9"/>
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="white" fillOpacity="0.9"/>
+              </svg>
+            </div>
           </div>
         </header>
 
@@ -274,43 +293,78 @@ export default function App() {
             <div>
               {/* Hero */}
               <div style={{ marginBottom:28 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                {/* Top row: chip + address */}
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
                   <span style={{
-                    background:'rgba(123,233,255,0.1)', border:'1px solid rgba(123,233,255,0.2)',
-                    color:'var(--tertiary)', borderRadius:20, padding:'4px 12px',
-                    fontSize:11, fontWeight:600, letterSpacing:'0.06em',
-                  }}>✦ PORTFOLIO OVERVIEW</span>
-                  <span style={{ fontFamily:'var(--font-mono)', fontSize:12, color:'var(--on-surface-dim)' }}>
+                    background:'rgba(123,233,255,0.08)', border:'1px solid rgba(123,233,255,0.18)',
+                    color:'var(--tertiary)', borderRadius:20, padding:'4px 14px',
+                    fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase',
+                  }}>Portfolio Overview</span>
+                  <span style={{
+                    fontFamily:'var(--font-mono)', fontSize:11, color:'var(--on-surface-dim)',
+                    background:'rgba(27,31,43,0.8)', padding:'3px 10px', borderRadius:6,
+                    border:'1px solid rgba(255,255,255,0.06)',
+                  }}>
                     {truncateAddress(address,7,6)}
                   </span>
                 </div>
+
+                {/* Big balance */}
                 <h1 style={{
-                  fontFamily:'var(--font-display)', fontSize:'clamp(36px,4vw,56px)',
+                  fontFamily:'var(--font-display)', fontSize:'clamp(38px,4.5vw,60px)',
                   fontWeight:800, letterSpacing:'-0.03em', lineHeight:1,
-                  color:'var(--on-surface)', marginBottom:8,
+                  color:'var(--on-surface)', marginBottom:10,
                 }}>
                   {formatUSD(totalUSD)}
                 </h1>
+
+                {/* 24h change — computed from weighted average of price changes */}
+                {(() => {
+                  const totalVal = allTokens.reduce((s,t) => s+(t.value||0), 0);
+                  if (totalVal <= 0) return null;
+                  const weightedChange = allTokens.reduce((s,t) => {
+                    const w = (t.value||0) / totalVal;
+                    return s + (t.change24h||0) * w;
+                  }, 0);
+                  const isPos = weightedChange >= 0;
+                  return (
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{
+                        fontSize:13, fontWeight:700,
+                        color: isPos ? 'var(--success)' : 'var(--error)',
+                        display:'flex', alignItems:'center', gap:4,
+                      }}>
+                        {isPos ? '↑' : '↓'} {Math.abs(weightedChange).toFixed(2)}%
+                      </span>
+                      <span style={{ fontSize:12, color:'var(--on-surface-dim)' }}>vs 24h ago</span>
+                    </div>
+                  );
+                })()}
+
                 {usingFallback && (
-                  <div style={{ fontSize:11, color:'var(--warning)', marginTop:4 }}>
+                  <div style={{ fontSize:11, color:'var(--warning)', marginTop:6 }}>
                     ⚠ {priceErr}
                   </div>
                 )}
               </div>
 
               {/* Tab row */}
-              <div style={{ display:'flex', gap:4, marginBottom:22, borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-                {TABS.map(t => (
-                  <button key={t} onClick={() => setActiveTab(t)} style={{
-                    background:'transparent', border:'none',
-                    borderBottom: activeTab===t ? '2px solid var(--primary-light)' : '2px solid transparent',
-                    color: activeTab===t ? 'var(--on-surface)' : 'var(--on-surface-dim)',
-                    fontWeight: activeTab===t ? 600 : 400,
-                    fontSize:13, padding:'8px 14px', cursor:'pointer',
-                    marginBottom:-1, whiteSpace:'nowrap',
-                    transition:'all 0.15s', fontFamily:'var(--font-body)',
-                  }}>{t}</button>
-                ))}
+              <div style={{ display:'flex', gap:4, marginBottom:22 }}>
+                {TABS.map(t => {
+                  const isActive = activeTab===t;
+                  return (
+                    <button key={t} onClick={() => setActiveTab(t)} style={{
+                      background: isActive ? 'rgba(255,137,176,0.12)' : 'rgba(255,255,255,0.04)',
+                      border: isActive ? '1px solid rgba(255,137,176,0.25)' : '1px solid transparent',
+                      borderRadius:8,
+                      color: isActive ? 'var(--primary-light)' : 'var(--on-surface-dim)',
+                      fontWeight: isActive ? 600 : 400,
+                      fontSize:12, padding:'6px 16px', cursor:'pointer',
+                      whiteSpace:'nowrap',
+                      transition:'all 0.15s', fontFamily:'var(--font-body)',
+                    }}>{t}</button>
+                  );
+                })}
               </div>
 
               {/* Two-column content */}

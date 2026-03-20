@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { truncateAddress } from '../lib/format';
 import PolkaHubLogo from './PolkaHubLogo';
 
@@ -15,7 +14,6 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
     <aside className="app-sidebar" style={{
       minHeight: '100vh',
       background: '#0d1020',
-      borderRight: '1px solid rgba(255,255,255,0.05)',
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
@@ -24,33 +22,49 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
       height: '100vh',
       overflowY: 'auto',
     }}>
-      {/* Logo */}
-      <div style={{ padding: '28px 20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <PolkaHubLogo width={130} showTagline={false} />
-        </div>
 
-        {/* User pill */}
-        {address && (
-          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--primary), var(--primary-dim))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, flexShrink: 0,
-            }}>🔑</div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--on-surface)' }}>PolkaHub User</div>
-              <div style={{ fontSize: 10, color: 'var(--on-surface-dim)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                Network Explorer
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Logo */}
+      <div style={{ padding: '24px 20px 20px' }}>
+        <PolkaHubLogo width={130} showTagline={false} />
       </div>
 
+      {/* Profile block — shown when address is loaded */}
+      {address && (
+        <div style={{
+          margin: '0 12px 8px',
+          padding: '10px 12px',
+          borderRadius: 12,
+          background: 'linear-gradient(135deg, rgba(226,0,120,0.12) 0%, rgba(226,0,120,0.04) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width: 34, height: 34, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #e20078, #8B00C9)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 0 0 2px rgba(226,0,120,0.3)',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" fill="white" fillOpacity="0.9"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="white" fillOpacity="0.9"/>
+            </svg>
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              PolkaHub Curator
+            </div>
+            <div style={{ fontSize: 9, color: 'var(--primary-light)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+              Network Explorer
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Nav */}
-      <nav style={{ padding: '12px 12px', flex: 1 }}>
+      <nav style={{ padding: '8px 12px', flex: 1 }}>
         {NAV.map(item => {
           const isActive = activeTab === item.id;
           return (
@@ -73,10 +87,20 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
                 marginBottom: 2,
                 transition: 'all 0.15s',
                 textAlign: 'left',
+                position: 'relative',
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
             >
+              {/* Active accent bar */}
+              {isActive && (
+                <span style={{
+                  position: 'absolute', left: 0, top: '20%', bottom: '20%',
+                  width: 3, borderRadius: '0 2px 2px 0',
+                  background: 'var(--primary-light)',
+                  boxShadow: '0 0 8px rgba(255,137,176,0.6)',
+                }} />
+              )}
               <span style={{
                 color: isActive ? 'var(--primary-light)' : 'var(--on-surface-faint)',
                 display: 'flex', flexShrink: 0,
@@ -89,63 +113,41 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
         })}
       </nav>
 
-      {/* Connect Wallet */}
-      <div style={{ padding: '16px 16px 24px' }}>
+      {/* Connect Wallet — solid pink CTA */}
+      <div style={{ padding: '16px 16px 28px' }}>
         <button
           onClick={onConnectWallet}
           style={{
             width: '100%',
-            padding: '11px 0',
+            padding: '12px 0',
             borderRadius: 12,
-            border: '1px solid rgba(226,0,120,0.4)',
-            background: 'transparent',
-            color: 'var(--primary-light)',
-            fontWeight: 600,
+            border: 'none',
+            background: address
+              ? 'rgba(226,0,120,0.15)'
+              : 'linear-gradient(135deg, #e20078, #c0005e)',
+            color: address ? 'var(--primary-light)' : 'white',
+            fontWeight: 700,
             fontSize: 13,
             cursor: 'pointer',
-            transition: 'all 0.2s',
+            transition: 'opacity 0.2s',
             fontFamily: 'var(--font-body)',
+            boxShadow: address ? 'none' : '0 4px 18px rgba(226,0,120,0.35)',
+            letterSpacing: '0.01em',
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'rgba(226,0,120,0.12)';
-            e.currentTarget.style.borderColor = 'rgba(226,0,120,0.7)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = 'rgba(226,0,120,0.4)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
         >
-          {address ? `${address.slice(0,6)}…${address.slice(-4)}` : 'Connect Wallet'}
+          {address
+            ? `${address.slice(0,6)}…${address.slice(-4)}`
+            : 'Connect Wallet'}
         </button>
       </div>
     </aside>
   );
 }
 
-function HubIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <rect width="28" height="28" rx="8" fill="rgba(226,0,120,0.15)" />
-      {/* Hub: центральный узел + 6 спиц — иконка Polkadot */}
-      <circle cx="14" cy="14" r="3" fill="#ff89b0" />
-      <circle cx="14" cy="6"  r="2" fill="#ff89b0" opacity="0.9" />
-      <circle cx="14" cy="22" r="2" fill="#ff89b0" opacity="0.9" />
-      <circle cx="7"  cy="10" r="2" fill="#ff89b0" opacity="0.7" />
-      <circle cx="21" cy="10" r="2" fill="#ff89b0" opacity="0.7" />
-      <circle cx="7"  cy="18" r="2" fill="#ff89b0" opacity="0.7" />
-      <circle cx="21" cy="18" r="2" fill="#ff89b0" opacity="0.7" />
-      <line x1="14" y1="11" x2="14" y2="8"  stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-      <line x1="14" y1="17" x2="14" y2="20" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-      <line x1="11.4" y1="12.5" x2="9"  y2="11" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-      <line x1="16.6" y1="12.5" x2="19" y2="11" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-      <line x1="11.4" y1="15.5" x2="9"  y2="17" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-      <line x1="16.6" y1="15.5" x2="19" y2="17" stroke="#ff89b0" strokeWidth="1" opacity="0.4" />
-    </svg>
-  );
-}
-
 function GridIcon() {
-  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>;
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>;
 }
 function StackIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>;
