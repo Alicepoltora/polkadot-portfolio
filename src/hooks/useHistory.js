@@ -2,83 +2,81 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   fetchSubscanTransfers,
   fetchSubscanRewards,
-  fetchMoonscanHistory,
-  fetchAstarHistory,
   getEvmAddress,
 } from '../lib/history';
+
+/**
+ * Chains to fetch transfer history from Subscan.
+ * Moonbeam uses the derived EVM address; others use the original SS58.
+ */
+const TRANSFER_CHAINS = ['polkadot', 'kusama', 'moonbeam', 'astar'];
 
 export function useHistory(address) {
   const [transfers,  setTransfers]  = useState([]);
   const [rewards,    setRewards]    = useState([]);
   const [loading,    setLoading]    = useState(false);
-  const [sources,    setSources]    = useState({});   // { chainSlug: 'ok'|'error'|'nokey' }
+  const [sources,    setSources]    = useState({});   // { slug: 'ok'|'error'|'nokey'|'empty' }
   const [hasSubscan, setHasSubscan] = useState(false);
 
   const load = useCallback(async () => {
     if (!address) return;
     setLoading(true);
     setSources({});
+    setTransfers([]);
+    setRewards([]);
 
     const key = import.meta.env.VITE_SUBSCAN_KEY;
-    setHasSubscan(!!key);
+    const hasKey = !!key;
+    setHasSubscan(hasKey);
 
-    const results = [];
-    const rewardResults = [];
-    const srcMap = {};
-
-    // ── 1. Polkadot transfers (Subscan, requires key) ──────────────────────
-    if (key) {
-      const dotResult = await fetchSubscanTransfers('polkadot', address, 0, 30);
-      if (dotResult.error) {
-        srcMap.polkadot = 'error';
-      } else {
-        srcMap.polkadot = 'ok';
-        results.push(...dotResult.transfers);
-      }
-
-      const ksmResult = await fetchSubscanTransfers('kusama', address, 0, 15);
-      if (!ksmResult.error) {
-        srcMap.kusama = 'ok';
-        results.push(...ksmResult.transfers);
-      }
-
-      // Staking rewards
-      const rewardResult = await fetchSubscanRewards('polkadot', address, 0, 30);
-      if (!rewardResult.error) {
-        rewardResults.push(...rewardResult.rewards);
-      }
-    } else {
-      srcMap.polkadot = 'nokey';
-      srcMap.kusama   = 'nokey';
+    if (!hasKey) {
+      // No API key — mark all sources as nokey and bail
+      const nokey = {};
+      TRANSFER_CHAINS.forEach(s => { nokey[s] = 'nokey'; });
+      setSources(nokey);
+      setLoading(false);
+      return;
     }
 
-    // ── 2. EVM chains (no API key needed from browser) ─────────────────────
+    // Derive EVM address once (for Moonbeam, which indexes by H160)
     const evmAddress = await getEvmAddress(address);
 
-    if (evmAddress) {
-      const [moonTxs, astarTxs] = await Promise.all([
-        fetchMoonscanHistory(evmAddress, 1, 25),
-        fetchAstarHistory(evmAddress, 0, 25),
-      ]);
+    const results      = [];
+    const rewardResult = [];
+    const srcMap       = {};
 
-      if (moonTxs.length > 0) {
-        srcMap.moonbeam = 'ok';
-        results.push(...moonTxs);
-      } else {
-        srcMap.moonbeam = 'empty';
-      }
+    // Fetch all chains in parallel
+    await Promise.all(
+      TRANSFER_CHAINS.map(async (slug) => {
+        // Moonbeam indexes transactions by EVM H160; use it if available
+        const queryAddr = (slug === 'moonbeam' && evmAddress) ? evmAddress : address;
+        const res = await fetchSubscanTransfers(slug, queryAddr, 0, 30);
 
-      if (astarTxs.length > 0) {
-        srcMap.astar = 'ok';
-        results.push(...astarTxs);
-      } else {
-        srcMap.astar = 'empty';
-      }
-    }
+        if (res.error) {
+          srcMap[slug] = 'error';
+          console.warn(`[history] ${slug} error:`, res.error);
+        } else if (res.transfers.length === 0) {
+          srcMap[slug] = 'empty';
+        } else {
+          srcMap[slug] = 'ok';
+          results.push(...res.transfers);
+        }
+      })
+    );
 
-    // ── Sort all by timestamp desc ─────────────────────────────────────────
-    const sorted = [...results].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    const sortedRewards = [...rewardResults].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    // Staking rewards: polkadot + kusama
+    await Promise.all(
+      ['polkadot', 'kusama'].map(async (slug) => {
+        const res = await fetchSubscanRewards(slug, address, 0, 30);
+        if (res.rewards?.length > 0) {
+          rewardResult.push(...res.rewards);
+        }
+      })
+    );
+
+    // Sort all by timestamp desc
+    const sorted        = [...results].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    const sortedRewards = [...rewardResult].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     setTransfers(sorted);
     setRewards(sortedRewards);

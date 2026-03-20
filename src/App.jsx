@@ -316,12 +316,12 @@ export default function App() {
               </div>
             </div>
 
-          ) : isInitialLoad ? (
-            <LoadingState message="Fetching on-chain data…" />
-
           ) : navTab === 'history' ? (
             /* ── HISTORY VIEW ── */
             <HistoryView address={address} />
+
+          ) : isInitialLoad ? (
+            <LoadingState message="Fetching on-chain data…" />
 
           ) : (
             /* ── PORTFOLIO / DASHBOARD VIEW ── */
