@@ -1,100 +1,150 @@
-/* PolkaPortfolio Global Styles */
+/* ===========================
+   POLKADOT PRISM — DESIGN SYSTEM
+   =========================== */
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  --pink: #E6007A;
-  --purple: #6300a8;
-  --bg: #0D0D0D;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  /* Surface layers */
+  --surface:          #0b0e17;
+  --surface-low:      #10131d;
+  --surface-high:     #1b1f2b;
+  --surface-highest:  #222636;
+  --surface-bright:   #2a2f40;
+
+  /* Primary — Polkadot Pink */
+  --primary:          #e20078;
+  --primary-light:    #ff89b0;
+  --primary-dim:      #c0005e;
+  --primary-container:#3d0020;
+
+  /* Tertiary — Network Cyan */
+  --tertiary:         #7be9ff;
+  --tertiary-dim:     #00b8d4;
+  --tertiary-container: #003340;
+
+  /* Text */
+  --on-surface:       #e3e4f2;
+  --on-surface-dim:   #8b8fa8;
+  --on-surface-faint: #4a4e63;
+
+  /* Semantic */
+  --success:          #4ade80;
+  --warning:          #f59e0b;
+  --error:            #f87171;
+
+  /* Fonts */
+  --font-display:     'Manrope', system-ui, sans-serif;
+  --font-body:        'Inter', system-ui, sans-serif;
+  --font-mono:        'Fira Code', monospace;
+}
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #0D0D0D;
-  color: white;
-}
-
-#root {
-  min-height: 100vh;
-  width: 100%;
-}
+#root { min-height: 100vh; width: 100%; display: flex; }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(230,0,122,0.4); }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-bright); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(226,0,120,0.4); }
 
-/* Skeleton animations */
-.skeleton-line, .skeleton-card, .skeleton-circle {
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-.skeleton-card {
-  border-radius: 12px;
-  padding: 16px;
+/* Selection */
+::selection { background: rgba(226,0,120,0.25); color: white; }
+
+/* Buttons reset */
+button { font-family: var(--font-body); cursor: pointer; }
+h1,h2,h3,h4 { margin: 0; font-family: var(--font-display); }
+p { margin: 0; }
+
+/* ---- Glass Card ---- */
+.glass-card {
+  background: rgba(27, 31, 43, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.5rem;
   border: 1px solid rgba(255,255,255,0.06);
+  background-image: linear-gradient(
+    135deg,
+    rgba(226,0,120,0.05) 0%,
+    transparent 40%
+  );
+  transition: border-color 0.2s, background 0.2s;
 }
-.skeleton-circle { border-radius: 50%; }
+.glass-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(34, 38, 54, 0.75);
+}
 
+/* ---- Skeleton ---- */
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 8px;
+}
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* Polkadot dot spinner */
+/* ---- Dot Spinner (Polkadot) ---- */
 .dot-spinner {
   position: relative;
-  width: 48px;
-  height: 48px;
-  animation: spinnerRotate 2s linear infinite;
+  width: 52px; height: 52px;
+  animation: spinnerRotate 2.4s linear infinite;
 }
 .dot-spinner__dot {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #E6007A;
+  width: 9px; height: 9px;
+  background: var(--primary-light);
   border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform-origin: -10px -10px;
-  transform: rotate(calc(var(--i) * 60deg)) translateY(-20px);
-  opacity: calc(0.2 + var(--i) * 0.13);
-  animation: dotPulse 1.2s ease-in-out infinite;
-  animation-delay: calc(var(--i) * 0.2s);
+  top: 50%; left: 50%;
+  transform-origin: -12px -12px;
+  transform: rotate(calc(var(--i) * 60deg)) translateY(-22px);
+  animation: dotPulse 1.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.23s);
 }
-@keyframes spinnerRotate {
-  to { transform: rotate(360deg); }
-}
+@keyframes spinnerRotate { to { transform: rotate(360deg); } }
 @keyframes dotPulse {
-  0%, 100% { transform: rotate(calc(var(--i) * 60deg)) translateY(-20px) scale(0.8); opacity: 0.3; }
-  50% { transform: rotate(calc(var(--i) * 60deg)) translateY(-20px) scale(1.2); opacity: 1; }
+  0%,100% { opacity: 0.25; transform: rotate(calc(var(--i)*60deg)) translateY(-22px) scale(0.7); }
+  50%     { opacity: 1;    transform: rotate(calc(var(--i)*60deg)) translateY(-22px) scale(1.2); }
 }
 
-/* Button spinner */
+/* ---- Btn spinner ---- */
 .btn-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,0.25);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.65s linear infinite;
   display: inline-block;
+  flex-shrink: 0;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Network Badge variants ---- */
+.badge-polkadot {
+  background: rgba(226,0,120,0.15);
+  color: var(--primary-light);
+  border: 1px solid rgba(226,0,120,0.25);
+  box-shadow: 0 0 6px rgba(226,0,120,0.2);
 }
-
-/* Selection */
-::selection { background: rgba(230,0,122,0.3); color: white; }
-
-/* Remove default button styles */
-button { font-family: inherit; }
-
-h1, h2, h3 { margin: 0; }
+.badge-parachain {
+  background: rgba(123,233,255,0.12);
+  color: var(--tertiary);
+  border: 1px solid rgba(123,233,255,0.2);
+  box-shadow: 0 0 6px rgba(123,233,255,0.15);
+}
