@@ -12,8 +12,7 @@ const NAV = [
 
 export default function Sidebar({ activeTab, onTabChange, address, onConnectWallet }) {
   return (
-    <aside style={{
-      width: 220,
+    <aside className="app-sidebar" style={{
       minHeight: '100vh',
       background: '#0d1020',
       borderRight: '1px solid rgba(255,255,255,0.05)',
@@ -23,6 +22,7 @@ export default function Sidebar({ activeTab, onTabChange, address, onConnectWall
       position: 'sticky',
       top: 0,
       height: '100vh',
+      overflowY: 'auto',
     }}>
       {/* Logo */}
       <div style={{ padding: '28px 20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

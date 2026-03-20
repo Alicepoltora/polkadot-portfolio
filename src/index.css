@@ -148,3 +148,78 @@ p { margin: 0; }
   border: 1px solid rgba(123,233,255,0.2);
   box-shadow: 0 0 6px rgba(123,233,255,0.15);
 }
+
+/* ==============================
+   RESPONSIVE LAYOUT
+   ============================== */
+
+/* Sidebar */
+.app-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+/* Two-column content grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 268px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Right panel stack */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Full-bleed content wrapper */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 36px;
+}
+
+/* Landing centred container */
+.landing-wrap {
+  max-width: 600px;
+  margin: 8vh auto 0;
+  text-align: center;
+}
+
+/* ── Tablet  (< 1100px): collapse right panel below assets ── */
+@media (max-width: 1100px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  .right-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── Mobile (< 768px): hide sidebar, single column ── */
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none;
+  }
+  .page-content {
+    padding: 20px 16px;
+  }
+  .right-panel {
+    grid-template-columns: 1fr;
+  }
+  .landing-wrap {
+    max-width: 100%;
+    margin-top: 6vh;
+    padding: 0 4px;
+  }
+}
+
+/* ── Wide desktop (> 1400px): slightly wider right panel ── */
+@media (min-width: 1400px) {
+  .content-grid {
+    grid-template-columns: 1fr 300px;
+  }
+}

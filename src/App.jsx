@@ -144,10 +144,10 @@ export default function App() {
         </header>
 
         {/* Content */}
-        <div style={{ flex:1, overflowY:'auto', padding:'32px 28px' }}>
+        <div className="page-content">
           {showLanding ? (
             /* ── LANDING ── */
-            <div style={{ maxWidth:560, margin:'10vh auto 0', textAlign:'center' }}>
+            <div className="landing-wrap">
               {/* Logo */}
               <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
                 <PolkaHubLogo width={200} showTagline={true} />
@@ -260,38 +260,40 @@ export default function App() {
               </div>
 
               {/* Two-column content */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', gap:20, alignItems:'start' }}>
+              <div className="content-grid">
 
                 {/* Left: Assets table */}
                 {activeTab === 'Staking' ? (
                   <StakingPanel staking={staking} apr={apr} dotPrice={getPrice('polkadot')} loading={stakingLoading} />
                 ) : (
-                  <div className="glass-card" style={{ overflow:'hidden' }}>
+                  <div className="glass-card" style={{ overflow:'hidden', minWidth:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'18px 20px 14px' }}>
                       <span style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:15 }}>Assets</span>
                       <span style={{ fontSize:12, color:'var(--primary-light)', cursor:'pointer', fontWeight:600 }}>View All +</span>
                     </div>
                     {filteredTokens.length > 0 ? (
-                      <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                        <thead>
-                          <tr style={{ background:'var(--surface-low)' }}>
-                            {['ASSET','CHAIN','BALANCE','PRICE','VALUE'].map(h => (
-                              <th key={h} style={{
-                                padding:'9px 12px', fontSize:10, fontWeight:600,
-                                color:'var(--on-surface-dim)', textAlign: ['BALANCE','PRICE','VALUE'].includes(h) ? 'right' : 'left',
-                                letterSpacing:'0.07em', textTransform:'uppercase',
-                              }}>
-                                {h === 'ASSET' ? <span style={{paddingLeft:8}}>{h}</span> : h}
-                              </th>
+                      <div style={{ overflowX:'auto' }}>
+                        <table style={{ width:'100%', borderCollapse:'collapse', minWidth:480 }}>
+                          <thead>
+                            <tr style={{ background:'var(--surface-low)' }}>
+                              {['ASSET','CHAIN','BALANCE','PRICE','VALUE'].map(h => (
+                                <th key={h} style={{
+                                  padding:'9px 12px', fontSize:10, fontWeight:600,
+                                  color:'var(--on-surface-dim)', textAlign: ['BALANCE','PRICE','VALUE'].includes(h) ? 'right' : 'left',
+                                  letterSpacing:'0.07em', textTransform:'uppercase',
+                                }}>
+                                  {h === 'ASSET' ? <span style={{paddingLeft:8}}>{h}</span> : h}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredTokens.map((token, i) => (
+                              <TokenRow key={`${token.chainId}-${token.symbol}`} token={token} index={i} />
                             ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredTokens.map((token, i) => (
-                            <TokenRow key={`${token.chainId}-${token.symbol}`} token={token} index={i} />
-                          ))}
-                        </tbody>
-                      </table>
+                          </tbody>
+                        </table>
+                      </div>
                     ) : (
                       <div style={{ textAlign:'center', padding:'48px 24px', color:'var(--on-surface-dim)', fontSize:13 }}>
                         No assets found for this filter
@@ -301,7 +303,7 @@ export default function App() {
                 )}
 
                 {/* Right: Network Breakdown + Staking APY */}
-                <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                <div className="right-panel">
                   <NetworkBreakdown tokensByChain={tokensByChain} />
                   <StakingPanel staking={staking} apr={apr} dotPrice={getPrice('polkadot')} loading={stakingLoading} />
                 </div>
