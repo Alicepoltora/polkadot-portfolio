@@ -13,21 +13,30 @@ export async function fetchSubscanTransfers(slug, address, page = 0, rows = 25) 
       { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json', ...(key ? { 'X-API-Key': key } : {}) } }
     );
     if (data?.code !== 0) return { transfers: [], count: 0, error: data?.message };
-    const transfers = (data?.data?.transfers ?? []).map(t => ({
-      id:        t.hash || t.extrinsic_index,
-      hash:      t.hash,
-      from:      t.from,
-      to:        t.to,
-      amount:    parseFloat(t.amount ?? 0),
-      symbol:    t.asset_symbol || t.symbol || 'DOT',
-      fee:       parseFloat(t.fee ?? 0),
-      success:   t.success !== false,
-      timestamp: t.block_timestamp * 1000,
-      blockNum:  t.block_num,
-      chain:     slug,
-      type:      t.from?.toLowerCase() === address.toLowerCase() ? 'send' : 'receive',
-      source:    'subscan',
-    }));
+    // Transfer amounts: Subscan returns natural unit strings (e.g. "1000" = 1000 DOT)
+    const decimals = slug === 'kusama' ? 12 : 10;
+    const transfers = (data?.data?.transfers ?? []).map(t => {
+      const rawAmt = parseFloat(t.amount ?? 0);
+      // Apply planck conversion only if it looks like a raw integer
+      const amount = (rawAmt > 1e8 && !String(t.amount ?? '').includes('.'))
+        ? rawAmt / Math.pow(10, decimals)
+        : rawAmt;
+      return {
+        id:        t.hash || t.extrinsic_index,
+        hash:      t.hash,
+        from:      t.from,
+        to:        t.to,
+        amount,
+        symbol:    t.asset_symbol || t.symbol || (slug === 'kusama' ? 'KSM' : 'DOT'),
+        fee:       parseFloat(t.fee ?? 0),
+        success:   t.success !== false,
+        timestamp: t.block_timestamp * 1000,
+        blockNum:  t.block_num,
+        chain:     slug,
+        type:      t.from?.toLowerCase() === address.toLowerCase() ? 'send' : 'receive',
+        source:    'subscan',
+      };
+    });
     return { transfers, count: data?.data?.count ?? 0 };
   } catch (err) {
     return { transfers: [], count: 0, error: err.message };
@@ -44,21 +53,31 @@ export async function fetchSubscanRewards(slug, address, page = 0, rows = 25) {
       { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json', ...(key ? { 'X-API-Key': key } : {}) } }
     );
     if (data?.code !== 0) return { rewards: [], count: 0 };
-    const rewards = (data?.data?.list ?? []).map(r => ({
-      id:        `${r.extrinsic_index || r.event_index}`,
-      hash:      r.extrinsic_hash,
-      amount:    parseFloat(r.amount ?? 0),
-      symbol:    'DOT',
-      era:       r.era,
-      timestamp: r.block_timestamp * 1000,
-      blockNum:  r.block_num,
-      chain:     slug,
-      type:      'reward',
-      source:    'subscan',
-      success:   true,
-      from:      'Staking',
-      to:        address,
-    }));
+    // Reward amounts are returned in planck (raw integer strings)
+    // DOT has 10 decimals, KSM has 12 — use slug to determine
+    const decimals = slug === 'kusama' ? 12 : 10;
+    const rewards = (data?.data?.list ?? []).map(r => {
+      const rawAmount = parseFloat(r.amount ?? 0);
+      // If amount looks like planck (very large integer with no decimal), convert
+      const amount = (rawAmount > 1e6 && !String(r.amount ?? '').includes('.'))
+        ? rawAmount / Math.pow(10, decimals)
+        : rawAmount;
+      return {
+        id:        `${r.extrinsic_index || r.event_index}`,
+        hash:      r.extrinsic_hash,
+        amount,
+        symbol:    slug === 'kusama' ? 'KSM' : 'DOT',
+        era:       r.era,
+        timestamp: r.block_timestamp * 1000,
+        blockNum:  r.block_num,
+        chain:     slug,
+        type:      'reward',
+        source:    'subscan',
+        success:   true,
+        from:      'Staking',
+        to:        address,
+      };
+    });
     return { rewards, count: data?.data?.count ?? 0 };
   } catch (err) {
     return { rewards: [], count: 0 };
