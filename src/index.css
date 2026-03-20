@@ -181,7 +181,29 @@ p { margin: 0; }
   padding: 32px 36px;
 }
 
-/* Landing centred container */
+/* Landing — full-width split layout */
+.landing-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+  min-height: calc(100vh - 60px - 64px);
+  padding-top: 4vh;
+}
+
+.landing-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.landing-right {
+  display: flex;
+  flex-direction: column;
+  padding-top: 2vh;
+}
+
+/* Legacy — keep for fallback */
 .landing-wrap {
   max-width: 600px;
   margin: 8vh auto 0;
@@ -196,6 +218,13 @@ p { margin: 0; }
   .right-panel {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+  .landing-split {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .landing-right {
+    padding-top: 0;
   }
 }
 
@@ -215,11 +244,27 @@ p { margin: 0; }
     margin-top: 6vh;
     padding: 0 4px;
   }
+  .landing-split {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 2vh;
+  }
+  .landing-left {
+    align-items: center;
+    text-align: center;
+  }
+  .landing-left h1 {
+    text-align: center;
+  }
 }
 
 /* ── Wide desktop (> 1400px): slightly wider right panel ── */
 @media (min-width: 1400px) {
   .content-grid {
     grid-template-columns: 1fr 300px;
+  }
+  .landing-split {
+    grid-template-columns: 5fr 4fr;
+    gap: 64px;
   }
 }

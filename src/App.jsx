@@ -79,6 +79,14 @@ export default function App() {
   /* ── Landing ── */
   const showLanding = !address;
 
+  /* Feature cards for landing right panel */
+  const features = [
+    { icon:'⛓', label:'Multichain', desc:'Polkadot, Kusama, Moonbeam, Astar, Acala & more' },
+    { icon:'💎', label:'Live Prices', desc:'Real-time CoinGecko feed with 24h change' },
+    { icon:'🏦', label:'Staking APY', desc:'Track bonded DOT, unbonding, and rewards' },
+    { icon:'🔍', label:'Any Address', desc:'Paste any SS58 or 0x address to explore' },
+  ];
+
   return (
     <div style={{ display:'flex', minHeight:'100vh', background:'var(--surface)' }}>
       {/* Sidebar */}
@@ -146,69 +154,115 @@ export default function App() {
         {/* Content */}
         <div className="page-content">
           {showLanding ? (
-            /* ── LANDING ── */
-            <div className="landing-wrap">
-              {/* Logo */}
-              <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
-                <PolkaHubLogo width={200} showTagline={true} />
+            /* ── LANDING — full-width split layout ── */
+            <div className="landing-split">
+
+              {/* Left: logo + search */}
+              <div className="landing-left">
+                <div style={{ marginBottom:28 }}>
+                  <PolkaHubLogo width={200} showTagline={true} />
+                </div>
+                <h1 style={{
+                  fontFamily:'var(--font-display)', fontSize:'clamp(28px,3.5vw,52px)',
+                  fontWeight:800, letterSpacing:'-0.03em', lineHeight:1.1,
+                  background:'linear-gradient(135deg,var(--on-surface) 40%,var(--primary-light))',
+                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
+                  marginBottom:16,
+                }}>
+                  Your Portfolio,<br/>Unified
+                </h1>
+                <p style={{ color:'var(--on-surface-dim)', fontSize:16, lineHeight:1.6, marginBottom:36, maxWidth:420 }}>
+                  Track DOT, staking positions, and multichain assets across the entire Polkadot ecosystem in one view.
+                </p>
+
+                {/* Search input */}
+                <div style={{
+                  display:'flex', borderRadius:14, overflow:'hidden',
+                  boxShadow: focused ? '0 0 0 2px rgba(226,0,120,0.4)' : '0 0 0 1px rgba(255,255,255,0.08)',
+                  transition:'box-shadow 0.2s', marginBottom:12, maxWidth:500,
+                }}>
+                  <input
+                    type="text" value={inputVal}
+                    onChange={e => setInputVal(e.target.value)}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => setFocused(false)}
+                    onKeyDown={e => e.key==='Enter' && handleSearch(inputVal)}
+                    placeholder="Enter SS58 or 0x address…"
+                    style={{
+                      flex:1, background:'var(--surface-high)', border:'none',
+                      padding:'14px 18px', color:'var(--on-surface)',
+                      fontSize:14, outline:'none', fontFamily:'var(--font-mono)',
+                      minWidth:0,
+                    }}
+                  />
+                  <button onClick={() => handleSearch(inputVal)} style={{
+                    background:'linear-gradient(135deg,var(--primary),var(--primary-dim))',
+                    border:'none', borderRadius:0,
+                    color:'white', fontWeight:700, fontSize:14,
+                    padding:'0 24px', cursor:'pointer', whiteSpace:'nowrap',
+                    fontFamily:'var(--font-body)', flexShrink:0,
+                  }}>Search</button>
+                </div>
+
+                {addrError && <div style={{ color:'var(--error)', fontSize:12, marginBottom:10 }}>⚠ {addrError}</div>}
+
+                <button onClick={() => { setInputVal(DEMO_ADDRESS); handleSearch(DEMO_ADDRESS); }} style={{
+                  background:'rgba(226,0,120,0.08)', border:'1px solid rgba(226,0,120,0.2)',
+                  borderRadius:8, color:'var(--primary-light)',
+                  fontSize:12, cursor:'pointer', fontFamily:'var(--font-mono)',
+                  padding:'6px 14px',
+                }}>
+                  ▶ Try demo: {DEMO_ADDRESS.slice(0,8)}…{DEMO_ADDRESS.slice(-6)}
+                </button>
+
+                {/* Chain pills */}
+                <div style={{ display:'flex', gap:8, marginTop:40, flexWrap:'wrap' }}>
+                  {['polkadot','kusama','moonbeam','astar','acala'].map(id => {
+                    const c = CHAINS[id];
+                    return <span key={id} style={{ fontSize:11, fontWeight:600, padding:'4px 12px', borderRadius:20, background:`${c.color}15`, color:c.color, border:`1px solid ${c.color}30` }}>{c.logo} {c.name}</span>;
+                  })}
+                </div>
               </div>
-              <h1 style={{
-                fontFamily:'var(--font-display)', fontSize:'clamp(28px,4vw,48px)',
-                fontWeight:800, letterSpacing:'-0.03em', lineHeight:1.15,
-                background:'linear-gradient(135deg,var(--on-surface) 40%,var(--primary-light))',
-                WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
-                marginBottom:16,
-              }}>
-                Your Portfolio,<br/>Unified
-              </h1>
-              <p style={{ color:'var(--on-surface-dim)', fontSize:16, lineHeight:1.6, marginBottom:36 }}>
-                Track DOT, staking positions, and multichain assets across the entire Polkadot ecosystem in one view.
-              </p>
 
-              {/* Search input */}
-              <div style={{
-                display:'flex', borderRadius:14, overflow:'hidden',
-                boxShadow: focused ? '0 0 0 2px rgba(226,0,120,0.4)' : 'none',
-                transition:'box-shadow 0.2s', marginBottom:12,
-              }}>
-                <input
-                  type="text" value={inputVal}
-                  onChange={e => setInputVal(e.target.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onKeyDown={e => e.key==='Enter' && handleSearch(inputVal)}
-                  placeholder="Enter SS58 or 0x address…"
-                  style={{
-                    flex:1, background:'var(--surface-high)', border:'1px solid rgba(255,255,255,0.08)',
-                    borderRight:'none', borderRadius:'14px 0 0 14px',
-                    padding:'14px 18px', color:'var(--on-surface)',
-                    fontSize:14, outline:'none', fontFamily:'var(--font-mono)',
-                  }}
-                />
-                <button onClick={() => handleSearch(inputVal)} style={{
-                  background:'linear-gradient(135deg,var(--primary),var(--primary-dim))',
-                  border:'none', borderRadius:'0 14px 14px 0',
-                  color:'white', fontWeight:700, fontSize:14,
-                  padding:'0 24px', cursor:'pointer', whiteSpace:'nowrap',
-                  fontFamily:'var(--font-body)', boxShadow:'0 4px 16px rgba(226,0,120,0.3)',
-                }}>Search</button>
-              </div>
+              {/* Right: feature cards grid */}
+              <div className="landing-right">
+                {/* Stat banner */}
+                <div className="glass-card" style={{ padding:'20px 24px', marginBottom:16 }}>
+                  <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.08em', color:'var(--tertiary)', marginBottom:12 }}>✦ ECOSYSTEM AT A GLANCE</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                    {[
+                      { label:'Networks', value:'10+' },
+                      { label:'Asset Types', value:'ERC-20, Native' },
+                      { label:'Staking', value:'DOT / KSM' },
+                      { label:'Data Source', value:'On-chain' },
+                    ].map(s => (
+                      <div key={s.label}>
+                        <div style={{ fontSize:20, fontWeight:800, fontFamily:'var(--font-display)', color:'var(--on-surface)' }}>{s.value}</div>
+                        <div style={{ fontSize:11, color:'var(--on-surface-dim)', marginTop:2 }}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-              {addrError && <div style={{ color:'var(--error)', fontSize:12, marginBottom:10 }}>⚠ {addrError}</div>}
+                {/* Feature grid */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                  {features.map(f => (
+                    <div key={f.label} className="glass-card" style={{ padding:'18px 20px' }}>
+                      <div style={{ fontSize:24, marginBottom:10 }}>{f.icon}</div>
+                      <div style={{ fontWeight:700, fontSize:14, color:'var(--on-surface)', marginBottom:4, fontFamily:'var(--font-display)' }}>{f.label}</div>
+                      <div style={{ fontSize:12, color:'var(--on-surface-dim)', lineHeight:1.5 }}>{f.desc}</div>
+                    </div>
+                  ))}
+                </div>
 
-              <button onClick={() => { setInputVal(DEMO_ADDRESS); handleSearch(DEMO_ADDRESS); }} style={{
-                background:'transparent', border:'none', color:'var(--on-surface-dim)',
-                fontSize:12, cursor:'pointer', fontFamily:'var(--font-mono)',
-              }}>
-                Try demo: {DEMO_ADDRESS.slice(0,8)}…{DEMO_ADDRESS.slice(-6)}
-              </button>
-
-              {/* Chain pills */}
-              <div style={{ display:'flex', justifyContent:'center', gap:8, marginTop:40, flexWrap:'wrap' }}>
-                {['polkadot','kusama','moonbeam','astar','acala'].map(id => {
-                  const c = CHAINS[id];
-                  return <span key={id} style={{ fontSize:11, fontWeight:600, padding:'4px 12px', borderRadius:20, background:`${c.color}15`, color:c.color, border:`1px solid ${c.color}30` }}>{c.logo} {c.name}</span>;
-                })}
+                {/* Bottom decoration */}
+                <div style={{ marginTop:16, padding:'14px 20px', borderRadius:12, background:'rgba(123,233,255,0.06)', border:'1px solid rgba(123,233,255,0.12)', display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ fontSize:20 }}>🔒</div>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:600, color:'var(--tertiary)' }}>Read-only & Non-custodial</div>
+                    <div style={{ fontSize:11, color:'var(--on-surface-dim)', marginTop:2 }}>No private keys. No sign-in. Just your address.</div>
+                  </div>
+                </div>
               </div>
             </div>
 
