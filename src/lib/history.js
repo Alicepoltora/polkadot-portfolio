@@ -1,36 +1,60 @@
 import axios from 'axios';
 import { ethers } from 'ethers';
 
-const TIMEOUT = 12000;
+const TIMEOUT = 15000;
 
 /**
- * Symbol/decimals per Subscan slug for amount parsing.
- * Subscan /v2/scan/transfers returns amounts in natural units (already divided).
+ * Symbol/decimals per Subscan slug.
+ * Subscan /v2/scan/transfers returns amounts already in natural units.
  */
 const SLUG_META = {
-  polkadot: { symbol: 'DOT', decimals: 10 },
-  kusama:   { symbol: 'KSM', decimals: 12 },
+  polkadot: { symbol: 'DOT',  decimals: 10 },
+  kusama:   { symbol: 'KSM',  decimals: 12 },
   moonbeam: { symbol: 'GLMR', decimals: 18 },
   astar:    { symbol: 'ASTR', decimals: 18 },
-  acala:    { symbol: 'ACA', decimals: 12 },
+  acala:    { symbol: 'ACA',  decimals: 12 },
 };
+
+/**
+ * Call Subscan through our own serverless proxy (/api/subscan) to avoid CORS.
+ * Falls back to a direct call if proxy unavailable (dev mode).
+ */
+async function subscanPost(slug, path, payload) {
+  // In production use the proxy; in local dev check for direct key
+  const key = import.meta.env.VITE_SUBSCAN_KEY;
+
+  // Try proxy first (works in both dev and prod, no CORS)
+  try {
+    const { data } = await axios.post(
+      '/api/subscan',
+      { slug, path, payload },
+      { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json' } }
+    );
+    return data;
+  } catch (proxyErr) {
+    // Proxy not available (e.g., running plain `vite dev` without vercel dev)
+    // Fall back to direct call (only works if CORS is not blocked)
+    if (!key) throw proxyErr;
+    const { data } = await axios.post(
+      `https://${slug}.api.subscan.io${path}`,
+      payload,
+      { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json', 'X-API-Key': key } }
+    );
+    return data;
+  }
+}
 
 // ─── Subscan transfer history ─────────────────────────────────────────────────
 export async function fetchSubscanTransfers(slug, address, page = 0, rows = 25) {
-  const key = import.meta.env.VITE_SUBSCAN_KEY;
   try {
-    const { data } = await axios.post(
-      `https://${slug}.api.subscan.io/api/v2/scan/transfers`,
-      { address, row: rows, page },
-      { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json', ...(key ? { 'X-API-Key': key } : {}) } }
-    );
+    const data = await subscanPost(slug, '/api/v2/scan/transfers', { address, row: rows, page });
     if (data?.code !== 0) return { transfers: [], count: 0, error: data?.message };
 
     const meta = SLUG_META[slug] ?? { symbol: 'DOT', decimals: 10 };
 
     const transfers = (data?.data?.transfers ?? []).map(t => {
       const rawAmt = parseFloat(t.amount ?? 0);
-      // Subscan v2 returns natural units — but guard against planck just in case
+      // Guard against planck form (large integer, no decimal point)
       const amount = (rawAmt > 1e8 && !String(t.amount ?? '').includes('.'))
         ? rawAmt / Math.pow(10, meta.decimals)
         : rawAmt;
@@ -58,19 +82,16 @@ export async function fetchSubscanTransfers(slug, address, page = 0, rows = 25) 
 
 // ─── Subscan staking reward history ──────────────────────────────────────────
 export async function fetchSubscanRewards(slug, address, page = 0, rows = 25) {
-  const key = import.meta.env.VITE_SUBSCAN_KEY;
   try {
-    const { data } = await axios.post(
-      `https://${slug}.api.subscan.io/api/v2/scan/account/reward_slash`,
-      { address, row: rows, page, is_stash: true },
-      { timeout: TIMEOUT, headers: { 'Content-Type': 'application/json', ...(key ? { 'X-API-Key': key } : {}) } }
-    );
+    const data = await subscanPost(slug, '/api/v2/scan/account/reward_slash', {
+      address, row: rows, page, is_stash: true,
+    });
     if (data?.code !== 0) return { rewards: [], count: 0 };
 
     const meta = SLUG_META[slug] ?? { symbol: 'DOT', decimals: 10 };
     const rewards = (data?.data?.list ?? []).map(r => {
       const rawAmount = parseFloat(r.amount ?? 0);
-      // Reward amounts come in planck (raw integer strings)
+      // Rewards come in planck form from Subscan
       const amount = (rawAmount > 1e6 && !String(r.amount ?? '').includes('.'))
         ? rawAmount / Math.pow(10, meta.decimals)
         : rawAmount;
@@ -103,7 +124,7 @@ export async function getEvmAddress(address) {
   try {
     const { decodeAddress } = await import('@polkadot/util-crypto');
     const bytes = decodeAddress(address);
-    // For Moonbeam/Astar unified accounts: last 20 bytes of 32-byte public key
+    // Moonbeam/Astar unified accounts: last 20 bytes of 32-byte pubkey
     return ethers.hexlify(bytes.slice(12)).toLowerCase();
   } catch {
     return null;
