@@ -7,6 +7,7 @@ import StakingPanel from './components/StakingPanel';
 import NetworkBreakdown from './components/NetworkBreakdown';
 import LoadingState from './components/LoadingState';
 import PolkaHubLogo from './components/PolkaHubLogo';
+import HistoryView from './components/HistoryView';
 
 import { usePolkadotAssets } from './hooks/usePolkadotAssets';
 import { useStaking } from './hooks/useStaking';
@@ -139,14 +140,20 @@ export default function App() {
         }}>
           {/* Tab links */}
           <div style={{ display:'flex', gap:2 }}>
-            {['Dashboard','Assets','Staking'].map(t => {
+            {(address
+              ? ['Dashboard','Assets','Staking','History']
+              : ['Dashboard']
+            ).map(t => {
               const id = t.toLowerCase();
               const isActive = navTab === id;
               return (
-                <button key={t} onClick={() => { setNavTab(id); if(id==='staking') setActiveTab('Staking'); else setActiveTab('All'); }} style={{
+                <button key={t} onClick={() => {
+                  setNavTab(id);
+                  if (id === 'staking') setActiveTab('Staking');
+                  else if (id !== 'history') setActiveTab('All');
+                }} style={{
                   background: isActive ? 'rgba(226,0,120,0.1)' : 'transparent',
-                  border: 'none',
-                  borderRadius: 8,
+                  border: 'none', borderRadius: 8,
                   color: isActive ? 'var(--primary-light)' : 'var(--on-surface-dim)',
                   fontWeight: isActive ? 600 : 400,
                   fontSize: 13, padding:'6px 16px', cursor:'pointer',
@@ -312,8 +319,12 @@ export default function App() {
           ) : isInitialLoad ? (
             <LoadingState message="Fetching on-chain data…" />
 
+          ) : navTab === 'history' ? (
+            /* ── HISTORY VIEW ── */
+            <HistoryView address={address} />
+
           ) : (
-            /* ── PORTFOLIO VIEW ── */
+            /* ── PORTFOLIO / DASHBOARD VIEW ── */
             <div>
               {/* Hero */}
               <div style={{ marginBottom:28 }}>
